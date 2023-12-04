@@ -1,0 +1,43 @@
+pipeline {
+  agent any
+  
+  parameters {
+    string defaultValue: 'trvl-namespace', description: 'Enter the namespace:', name: 'namespace' 
+  }
+  
+  stages {
+    stage('Clone repository') {
+      steps {
+        git(
+            url: 'https://github.com/vsltrl/trvlab.git',
+            credentialsId: 'JENKINS_CREDENTIALS',
+            branch: 'BRANCH'
+        )
+      }
+    }  
+     
+    stage('Create namespace') {
+      steps {
+        script {
+          sh "kubectl create namespace ${namespace}"
+        }
+      }
+    }
+
+    stage('Create Pod') {
+      steps {
+        sh "kubectl apply -f mini-web-service.yml -n ${namespace}"
+      }
+    }
+
+    stage('Get EXTERNAL-IP and nodePort') {
+      steps {
+        script {
+          def externalIP = sh(returnStdout: true, script: "kubectl get svc -n ${namespace} -o jsonpath={.items[0].status.loadBalancer.ingress[0].ip}").trim()
+          def nodePort = sh(returnStdout: true, script: "kubectl get svc -n ${namespace} -o jsonpath={.items[0].spec.ports[0].nodePort}").trim()
+          sh "curl http://${externalIP}:${nodePort}/www.yandex.ru"
+        }
+      }
+    }
+  }
+}
