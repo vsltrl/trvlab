@@ -112,37 +112,30 @@ resource "yandex_vpc_security_group" "k8s-public-services" {
   }
   ingress {
     protocol          = "ANY"
-    description       = "Правило разрешает взаимодействие под-под и сервис-сервис. Укажите подсети вашего кластера Managed Service for Kubernetes и сервисов."
+    description       = "Правило разрешает взаимодействие под-под и сервис-сервис."
     v4_cidr_blocks    = concat(yandex_vpc_subnet.trvlsubnet.v4_cidr_blocks)
     from_port         = 0
     to_port           = 65535
-  }
-  ingress {
-    protocol          = "ICMP"
-    description       = "Правило разрешает отладочные ICMP-пакеты из внутренних подсетей."
-    v4_cidr_blocks    = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
-  }
-  ingress {
+  }ingress {
     protocol          = "TCP"
     description       = "Правило разрешает входящий трафик из интернета на диапазон портов NodePort."
     v4_cidr_blocks    = ["0.0.0.0/0"]
     from_port         = 30000
     to_port           = 32767
-  }
-
+  }  
   ingress {
     protocol       = "TCP"
     description    = "Правило разрешает подключение к API Kubernetes через порт 6443 из указанной сети."
     v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 6443
   }
-
   ingress {
     protocol       = "TCP"
     description    = "Правило разрешает подключение к API Kubernetes через порт 443 из указанной сети."
     v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 443
   }
+
 
   egress {
     protocol          = "ANY"
