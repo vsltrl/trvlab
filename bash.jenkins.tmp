@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    
+    parameters {
+        string defaultValue: 'www.ya.ru', description: 'Input URL', name: 'URL'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git(
+                    url: 'https://github.com/vsltrl/trvlab.git',
+                    credentialsId: 'JENKINS_CREDENTIALS',
+                    branch: 'BRANCH'
+        )
+            }
+        }
+        
+        stage('Run Script') {
+            steps {
+                script {
+                    def result = sh(returnStdout: true, script: 'bash urlCheck.sh $URL').trim()
+                    env.CURRENT_BUILD_RESULT = result
+                }    
+            }
+        }
+        
+        stage('Send Email') {
+            steps {
+                emailext body: "The script execution result was: $CURRENT_BUILD_RESULT",
+                    subject: "URL Check Result",
+                    to: "EMAIL"
+            }
+        }
+    }
+}
